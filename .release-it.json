@@ -1,0 +1,53 @@
+{
+  "types": [
+    {
+      "type": "feat",
+      "section": "Features",
+      "hidden": false
+    },
+    {
+      "type": "fix",
+      "section": "Bug Fixes",
+      "hidden": false
+    },
+    {
+      "type": "docs",
+      "section": "Documentation",
+      "hidden": false
+    },
+    {
+      "type": "style",
+      "section": "Styling",
+      "hidden": false
+    },
+    {
+      "type": "refactor",
+      "section": "Code Refactoring",
+      "hidden": false
+    },
+    {
+      "type": "perf",
+      "section": "Performance",
+      "hidden": false
+    },
+    {
+      "type": "test",
+      "section": "Tests",
+      "hidden": true
+    },
+    {
+      "type": "ci",
+      "section": "CI/CD",
+      "hidden": true
+    },
+    {
+      "type": "chore",
+      "section": "Chores",
+      "hidden": true
+    }
+  ],
+  "commitUrlFormat": "https://github.com/yourusername/p5-audio-visualization/commit/{{hash}}",
+  "compareUrlFormat": "https://github.com/yourusername/p5-audio-visualization/compare/{{previousTag}}...{{currentTag}}",
+  "issueUrlFormat": "https://github.com/yourusername/p5-audio-visualization/issues/{{id}}",
+  "userUrlFormat": "https://github.com/{{user}}"
+}
