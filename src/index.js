@@ -3,16 +3,20 @@
  * Audio-reactive heart visualization
  */
 
-let mic;
-let fft;
+let mic, fft;
 let smoothedPulse = 0;
 let userImg = null;
 let useHeart = true;
 let fileInput;
-let showInstructions = true;
 
-const heartShape = new HeartShape();
-const effects = new Effects();
+let rotateEnabled = false;
+let rotationAngle = 0;
+
+let bounceEnabled = false;
+let posX, posY;
+let velX, velY;
+
+let showInstructions = true;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -33,21 +37,41 @@ function setup() {
   fileInput.style('font-size', '14px');
   fileInput.attribute('accept', 'image/png');
 
-  effects.initializeBounce(width, height);
+  posX = width / 2;
+  posY = height / 2;
+  velX = random(3, 6);
+  velY = random(3, 6);
 }
 
 function draw() {
   background(0, 25);
 
-  const shapeSize = 300 * smoothedPulse;
-  effects.updateBounce(width, height, shapeSize);
+  // Update bounce
+  if (bounceEnabled) {
+    posX += velX;
+    posY += velY;
+
+    const shpSize = 300 * smoothedPulse;
+    const halfSize = shpSize / 2;
+
+    if (posX + halfSize > width || posX - halfSize < 0) {
+      velX *= -1;
+    }
+    if (posY + halfSize > height || posY - halfSize < 0) {
+      velY *= -1;
+    }
+  } else {
+    posX = width / 2;
+    posY = height / 2;
+  }
 
   push();
-  translate(effects.posX, effects.posY);
+  translate(posX, posY);
 
-  effects.updateRotation();
-  if (effects.rotateEnabled) {
-    rotate(effects.rotationAngle);
+  // Apply rotation
+  if (rotateEnabled) {
+    rotationAngle += 1;
+    rotate(rotationAngle);
   }
 
   const level = mic.getLevel();
@@ -57,7 +81,7 @@ function draw() {
   const baseHue = (frameCount * 2) % 360;
 
   if (useHeart) {
-    heartShape.draw(baseHue, smoothedPulse);
+    drawHeart(baseHue);
   } else if (userImg) {
     drawUserImage(baseHue);
   }
@@ -65,6 +89,29 @@ function draw() {
 
   if (showInstructions) {
     drawInstructions();
+  }
+}
+
+function drawHeart(baseHue) {
+  for (let g = 3; g >= 0; g--) {
+    const glowScale = 10 + g * 6;
+    const alpha = 120 - g * 30;
+    const hue = (baseHue + g * 15) % 360;
+    fill(hue, 255, 255, alpha);
+
+    beginShape();
+    for (let angle = 0; angle < 360; angle += 2) {
+      let x = 16 * pow(sin(angle), 3);
+      let y =
+        13 * cos(angle) -
+        5 * cos(2 * angle) -
+        2 * cos(3 * angle) -
+        cos(4 * angle);
+      x *= glowScale * smoothedPulse * 0.6;
+      y *= -glowScale * smoothedPulse * 0.6;
+      vertex(x, y);
+    }
+    endShape(CLOSE);
   }
 }
 
@@ -91,9 +138,13 @@ function keyPressed() {
     useHeart = true;
     userImg = null;
   } else if (key === 'R' || key === 'r') {
-    effects.toggleRotation();
+    rotateEnabled = !rotateEnabled;
   } else if (key === 'B' || key === 'b') {
-    effects.toggleBounce();
+    bounceEnabled = !bounceEnabled;
+    if (bounceEnabled) {
+      velX = random(3, 6) * (random() > 0.5 ? 1 : -1);
+      velY = random(3, 6) * (random() > 0.5 ? 1 : -1);
+    }
   } else if (key === 'E' || key === 'e') {
     showInstructions = !showInstructions;
     if (showInstructions) {
