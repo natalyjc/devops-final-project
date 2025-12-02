@@ -11,6 +11,7 @@ RUN npm ci
 
 # Copy source code
 COPY src ./src
+COPY public ./public
 COPY webpack.config.js .
 COPY .babelrc.json .
 
@@ -27,9 +28,6 @@ RUN npm install -g http-server
 
 # Copy built artifacts from builder
 COPY --from=builder /app/dist ./dist
-
-# Copy public files
-COPY public ./dist
 
 # Expose port
 EXPOSE 8000
