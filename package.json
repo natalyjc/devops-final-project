@@ -41,7 +41,7 @@
   },
   "dependencies": {
     "p5": "^1.7.0",
-    "sentry-browser": "^7.84.0"
+    "@sentry/browser": "^7.84.0"
   },
   "engines": {
     "node": ">=18.0.0",
