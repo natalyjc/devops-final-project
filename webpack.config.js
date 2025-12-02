@@ -29,10 +29,12 @@ module.exports = {
     }),
   ],
   devServer: {
-    static: './dist',
+    static: {
+      directory: path.join(__dirname, 'public'),
+    },
     port: 8000,
     hot: true,
-    open: true,
+    compress: true,
   },
   devtool: 'source-map',
 };

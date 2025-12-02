@@ -3,7 +3,7 @@
  * Handles rotation, bouncing, and other visual effects
  */
 
-export class Effects {
+class Effects {
   constructor() {
     this.rotationAngle = 0;
     this.rotateEnabled = false;
@@ -66,5 +66,3 @@ export class Effects {
     return Math.random() * (max - min) + min;
   }
 }
-
-export default Effects;

@@ -3,9 +3,6 @@
  * Audio-reactive heart visualization
  */
 
-import { HeartShape } from './visualization/shapes.js';
-import { Effects } from './visualization/effects.js';
-
 let mic;
 let fft;
 let smoothedPulse = 0;
@@ -60,7 +57,7 @@ function draw() {
   const baseHue = (frameCount * 2) % 360;
 
   if (useHeart) {
-    heartShape.draw(this, baseHue, smoothedPulse);
+    heartShape.draw(baseHue, smoothedPulse);
   } else if (userImg) {
     drawUserImage(baseHue);
   }
