@@ -1,33 +1,33 @@
 ---
 name: Bug Report
-about: Create a report to help us improve
+about: Report a bug to help us improve the visualization
 title: '[BUG] '
 labels: bug
 assignees: ''
 ---
 
 ## Description
-<!-- A clear and concise description of what the bug is. -->
+<!-- Provide a clear and concise description of the bug -->
 
-## Reproduction Steps
-<!-- Steps to reproduce the behavior: -->
+## Steps to Reproduce
+<!-- List the steps to reproduce the behavior -->
 1. 
 2. 
 3. 
 
 ## Expected Behavior
-<!-- A clear and concise description of what you expected to happen. -->
+<!-- Describe what you expected to happen -->
 
 ## Actual Behavior
-<!-- What actually happened instead. -->
+<!-- Describe what actually happened -->
 
 ## Environment
-- **Browser:** (e.g., Chrome 120, Firefox 121)
-- **OS:** (e.g., Windows 11, macOS 14)
-- **p5.js Version:** (e.g., 1.7.0)
+- Browser: <!-- e.g., Chrome 120, Firefox 121 -->
+- OS: <!-- e.g., Windows 11, macOS 14 -->
+- Microphone Type: <!-- e.g., Built-in, USB microphone -->
 
 ## Screenshots
-<!-- If applicable, add screenshots to help explain your problem. -->
+<!-- If applicable, add screenshots or recordings showing the bug -->
 
 ## Additional Context
-<!-- Add any other context about the problem here. -->
+<!-- Add any other relevant information -->

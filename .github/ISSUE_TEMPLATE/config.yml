@@ -1,0 +1,10 @@
+# Configuration for issue templates and triage
+
+blank_issues_enabled: true
+contact_links:
+  - name: Documentation
+    url: https://github.com/[owner]/[repo]/blob/main/README.md
+    about: Read the project documentation and usage guide
+  - name: Discussions
+    url: https://github.com/[owner]/[repo]/discussions
+    about: Ask questions and share ideas in Discussions
