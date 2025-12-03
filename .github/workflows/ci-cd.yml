@@ -1,217 +1,60 @@
 name: CI/CD Pipeline
 
-# Trigger on commits to main branch (automatic)
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
-  # Manual trigger via GitHub Actions UI
-  workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Deployment environment'
-        required: true
-        default: 'staging'
-        type: choice
-        options:
-          - staging
-          - production
+	push:
+		branches: [ main ]
+	workflow_dispatch:
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    name: Build & Validate
+	serve-and-test:
+		name: Serve website and run smoke tests
+		runs-on: ubuntu-latest
+		steps:
+			- name: Checkout repository
+				uses: actions/checkout@v4
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+			- name: Setup Node.js
+				uses: actions/setup-node@v4
+				with:
+					node-version: '18'
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
+			- name: Install http-server
+				run: npm install -g http-server
 
-      - name: Install dependencies
-        run: npm install --legacy-peer-deps
-        continue-on-error: true
+			- name: Start http-server in background
+				run: |
+					# start server in background on port 8080
+					npx http-server -p 8080 &>/dev/null &
+					echo $! > server.pid
+					# give the server a moment to start
+					sleep 1
 
-      - name: Run code quality checks
-        run: |
-          echo "Running ESLint checks..."
-          npm run lint --if-present || true
-          echo "Code quality checks completed"
+			- name: Wait for server to be ready
+				run: |
+					for i in {1..15}; do
+						if curl -fsS http://localhost:8080 >/dev/null; then
+							echo "Server is up"
+							exit 0
+						fi
+						sleep 1
+					done
+					echo "Server did not start in time" >&2
+					cat server.pid || true
+					exit 1
 
-      - name: Validate HTML
-        run: |
-          echo "Validating HTML structure..."
-          npx html-validate index.html || true
-          echo "HTML validation completed"
+			- name: Basic smoke test - check index.html contains HTML
+				run: |
+					content=$(curl -fsS http://localhost:8080/)
+					echo "$content" | head -n 3
+					if ! echo "$content" | grep -qi "<html\|<!DOCTYPE"; then
+						echo "Root page does not look like HTML" >&2
+						exit 1
+					fi
 
-      - name: Build project
-        run: |
-          echo "Building project..."
-          npm run build --if-present || echo "No build script configured"
-          echo "Build completed successfully"
+			- name: Stop http-server
+				if: always()
+				run: |
+					if [ -f server.pid ]; then
+						kill "$(cat server.pid)" || true
+					fi
 
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-artifacts
-          path: |
-            index.html
-            style.css
-            demo.js
-            p5.js
-            p5.sound.min.js
-            README.md
-          retention-days: 7
-
-      - name: Log build completion
-        run: |
-          echo "✅ Build stage completed"
-          echo "Commit: ${{ github.sha }}"
-          echo "Branch: ${{ github.ref }}"
-          echo "Trigger: ${{ github.event_name }}"
-
-  test:
-    runs-on: ubuntu-latest
-    name: Run Tests
-    needs: build
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm install --legacy-peer-deps
-        continue-on-error: true
-
-      - name: Run unit tests
-        run: |
-          echo "Running unit tests..."
-          npm test --if-present || echo "No tests configured"
-          echo "Tests completed"
-
-      - name: Verify file integrity
-        run: |
-          echo "Verifying critical files..."
-          test -f index.html && echo "✓ index.html found"
-          test -f style.css && echo "✓ style.css found"
-          test -f demo.js && echo "✓ demo.js found"
-          test -f p5.js && echo "✓ p5.js found"
-          test -f p5.sound.min.js && echo "✓ p5.sound.min.js found"
-          echo "All critical files verified"
-
-      - name: Log test completion
-        run: echo "✅ Test stage completed"
-
-  security:
-    runs-on: ubuntu-latest
-    name: Security Scanning
-    needs: build
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-        continue-on-error: true
-
-      - name: Upload Trivy results
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: 'trivy-results.sarif'
-        continue-on-error: true
-
-      - name: Check for vulnerable dependencies
-        run: |
-          echo "Checking Node.js dependencies for vulnerabilities..."
-          npm audit --audit-level=moderate || echo "Some vulnerabilities found, review required"
-
-      - name: Log security scan completion
-        run: echo "✅ Security scanning completed"
-
-  deploy:
-    runs-on: ubuntu-latest
-    name: Deploy Application
-    needs: [build, test, security]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build-artifacts
-
-      - name: Prepare deployment
-        run: |
-          echo "Preparing deployment package..."
-          mkdir -p deploy
-          cp -r . deploy/ || echo "Deployment files prepared"
-          echo "Deployment package ready"
-
-      - name: Verify deployment package
-        run: |
-          echo "Verifying deployment package contents..."
-          ls -la deploy/
-          echo "✓ Deployment verification complete"
-
-      - name: Log deployment readiness
-        run: |
-          echo "✅ Application ready for deployment"
-          echo "Environment: ${{ github.event.inputs.environment || 'production' }}"
-          echo "Deployed commit: ${{ github.sha }}"
-
-      - name: Create deployment status
-        run: |
-          echo "Deployment Status Report"
-          echo "========================"
-          echo "Status: SUCCESS"
-          echo "Commit: ${{ github.sha }}"
-          echo "Branch: ${{ github.ref_name }}"
-          echo "Triggered by: ${{ github.event_name }}"
-          echo "Timestamp: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-
-  notify:
-    runs-on: ubuntu-latest
-    name: Pipeline Notification
-    needs: [build, test, security, deploy]
-    if: always()
-
-    steps:
-      - name: Pipeline completion summary
-        run: |
-          echo "╔════════════════════════════════════════╗"
-          echo "║     CI/CD PIPELINE COMPLETED          ║"
-          echo "╚════════════════════════════════════════╝"
-          echo ""
-          echo "Build Status: ${{ needs.build.result }}"
-          echo "Test Status: ${{ needs.test.result }}"
-          echo "Security Status: ${{ needs.security.result }}"
-          echo "Deploy Status: ${{ needs.deploy.result }}"
-          echo ""
-          echo "Repository: ${{ github.repository }}"
-          echo "Branch: ${{ github.ref_name }}"
-          echo "Commit: ${{ github.sha }}"
-          echo "Author: ${{ github.actor }}"
