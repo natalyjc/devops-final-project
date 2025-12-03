@@ -1,0 +1,206 @@
+\chapter{Domain and SSL Setup \\
+\small{\textit{-- Nataly Jimenez, Nicole Valdiviezo, Lakshya Vegiraju}}
+\index{Domain and SSL Setup} 
+\index{Chapter!Domain and SSL Setup}
+\label{Chapter::DomainSSL Setup}}
+
+\section{Step 1: Domain Name Setup}
+
+\subsection{Overview}
+For this project, our group registered a custom domain name to host our Overleaf instance. We selected the domain \textbf{audioviz.me}, which was purchased through \textbf{Namecheap}. This domain will later be connected to our Overleaf container and GitHub repository for version-controlled LaTeX compilation and deployment.
+
+\subsection{Procedure}
+\begin{enumerate}
+    \item \textbf{Domain Registration:}
+    \begin{itemize}
+        \item Visited \url{https://www.namecheap.com/} and searched for an available domain name.
+        \item Registered the domain \textbf{audioviz.me} under our group’s Namecheap account.
+        \item Verified ownership via the confirmation email sent by Namecheap.
+    \end{itemize}
+
+    \item \textbf{DNS Configuration:}
+    \begin{itemize}
+        \item Logged into the Namecheap dashboard.
+        \item Navigated to \textit{Domain List → Manage → Advanced DNS}.
+        \item Created an \textbf{A record} pointing to the IP address of our Overleaf server or cloud host (e.g., DigitalOcean, AWS, or local machine).
+        \item Optionally, added a \textbf{CNAME record} for subdomains (e.g., \texttt{overleaf.audioviz.me}) pointing to the root domain.
+        \item Saved changes and waited for DNS propagation (typically 10–30 minutes).
+    \end{itemize}
+
+    \item \textbf{Verification:}
+    \begin{itemize}
+        \item Used \texttt{nslookup audioviz.me} and \texttt{ping audioviz.me} to confirm DNS resolution.
+        \item Accessed the domain in a browser to ensure it correctly routed to our host IP.
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Next Steps}
+\begin{itemize}
+    \item Configure Nginx or Apache as a reverse proxy for the Overleaf container.
+    \item Ensure ports 80 (HTTP) and 443 (HTTPS) are open on the server.
+\end{itemize}
+
+\section{Step 2: SSL Configuration Research}
+
+\subsection{Overview}
+To secure our domain with HTTPS, we researched methods to add and renew SSL certificates for the Overleaf instance. The preferred approach uses \textbf{Let’s Encrypt}, a free Certificate Authority that automatically renews every 90 days.
+
+\subsection{Installation and Renewal Options}
+\begin{enumerate}
+    \item \textbf{Install Certbot (Let’s Encrypt client):}
+    \begin{verbatim}
+    sudo apt update
+    sudo apt install certbot python3-certbot-nginx
+    \end{verbatim}
+
+    \item \textbf{Obtain a Certificate:}
+    \begin{verbatim}
+    sudo certbot --nginx -d audioviz.me -d overleaf.audioviz.me
+    \end{verbatim}
+    This command:
+    \begin{itemize}
+        \item Automatically configures Nginx for SSL.
+        \item Downloads and installs certificates for both the root and subdomain.
+    \end{itemize}
+
+    \item \textbf{Test Auto-Renewal:}
+    \begin{verbatim}
+    sudo certbot renew --dry-run
+    \end{verbatim}
+
+    \item \textbf{Alternative (Manual or Dockerized Setup):}
+    \begin{itemize}
+        \item If running Overleaf inside Docker, mount certificate volumes:
+        \begin{verbatim}
+        docker run -d \
+            -v /etc/letsencrypt/live/audioviz.me:/etc/letsencrypt/live/audioviz.me \
+            -p 80:80 -p 443:443 \
+            overleaf/overleaf
+        \end{verbatim}
+        \item Configure the Overleaf container to use SSL via the Nginx proxy container.
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Next Steps}
+\begin{itemize}
+    \item Integrate SSL configuration into the Overleaf Docker Compose file.
+    \item Set up a cron job or systemd timer for automatic certificate renewal.
+    \item Update the documentation with screenshots of the SSL verification (using \texttt{https://audioviz.me}).
+\end{itemize}
+
+\subsection{Install Docker and Docker Compose on droplet}
+
+\begin{minted}{bash}
+# Update system
+sudo apt update && sudo apt upgrade -y
+
+# Install Docker
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+
+# Install Docker Compose
+sudo apt install docker-compose -y
+
+# Add current user to Docker group
+sudo usermod -aG docker $USER
+
+\end{minted}
+
+\section{Summary}
+After completing Steps 1 and 2, the group will have:
+\begin{itemize}
+    \item A working domain \textbf{(audioviz.me)} that points to the Overleaf host.
+    \item A secure HTTPS connection via Let’s Encrypt.
+    \item A foundation to connect Overleaf with GitHub and compile LaTeX projects under version control.
+\end{itemize}
+
+
+
+\section{Step 3: Set up Overleaf container}
+\begin{minted}{bash}
+mkdir -p ~/overleaf
+cd ~/overleaf
+\end{minted}
+
+\begin{minted}{bash}
+nano docker-compose.yml
+\end{minted}
+
+\begin{minted}{bash}
+version: '3.8'
+
+services:
+  overleaf:
+    image: sharelatex/sharelatex:latest
+    restart: always                   # Restarts if container crashes or droplet reboots
+    ports:
+      - "80:80"                       # Exposes HTTP
+      - "443:443"                     # Exposes HTTPS (for SSL)
+    environment:
+      - ROOT_URL=https://audioviz.me  # The domain Overleaf will use
+    volumes:
+      - ./data:/var/lib/sharelatex
+    -./tmp:/var/lib/sharelatex/tmp
+      - /var/run/docker.sock:/var/run/docker.sock
+\end{minted}
+
+\begin{minted}{bash}
+docker-compose pull
+docker-compose up -d
+\end{minted}
+
+\subsection{Configure Overleaf Container}
+\begin{itemize}
+  \item Set up a custom Overleaf container using the latest LaTeX image with all required packages preinstalled.
+  \item Installed additional packages (\texttt{biblatex}, \texttt{tikz}, \texttt{geometry}, and \texttt{hyperref}) to support group document formatting.
+  \item Verified compilation by building our main \texttt{.tex} project 
+  \item Adjusted the Dockerfile to ensure consistent LaTeX builds across all group members.
+  \item Noted configuration details and build success in our update log.
+\end{itemize}
+
+\section{Step 4 – Connect Overleaf to GitHub}
+\begin{itemize}
+  \item Created a private GitHub repository for our Overleaf project and initialized it with a \texttt{README.md}.
+  \item Linked Overleaf to the repository via the built-in GitHub integration.
+  \item Pushed our project to GitHub and confirmed that all files (\texttt{.tex}, images, and \texttt{.bib}) synced correctly.
+  \item Tested syncing in both directions 
+  \item Documented connection steps and repository link in our update history table.
+\end{itemize}
+
+\section{Step 5 – Compile from Command Line}
+\begin{itemize}
+  \item Cloned the GitHub repository locally using the command:
+  \begin{verbatim}
+  git clone https://github.com/yourusername/yourproject.git
+  \end{verbatim}
+
+  \item Navigated into the project directory:
+  \begin{verbatim}
+  cd yourproject
+  \end{verbatim}
+
+  \item Compiled the LaTeX document with the following commands to ensure reproducible builds:
+  \begin{verbatim}
+  latexmk -pdf main.tex
+  \end{verbatim}
+  or alternatively:
+  \begin{verbatim}
+  pdflatex main.tex
+  bibtex main.aux
+  pdflatex main.tex
+  pdflatex main.tex
+  \end{verbatim}
+
+  \item Installed missing LaTeX dependencies as needed:
+  \begin{verbatim}
+  tlmgr install <package-name>
+  \end{verbatim}
+
+  \item Verified that the compiled PDF matched Overleaf’s online output and noted any differences.
+\end{itemize}
+
+\section{Step 6 – Add Versioning to the Project}
+\begin{itemize}
+  \item Added the version number and the short Git commit hash on the document title page.
+  \item Confirmed version traceability by cross-checking GitHub tags with Overleaf project history.
+\end{itemize}
