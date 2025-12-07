@@ -78,22 +78,37 @@ jobs:
             echo "✓ pdflatex found at: $(which pdflatex)"
             pdflatex --version | head -2
           else
-            echo "✗ pdflatex not found in PATH"
+            echo "✗ pdflatex not found, installing LaTeX..."
             echo ""
-            echo "PATH: $PATH"
-            echo ""
-            echo "Searching for LaTeX..."
             
-            # Try common installation locations
-            if [ -f "/usr/bin/pdflatex" ]; then
-              echo "Found at /usr/bin/pdflatex"
-              export PATH="/usr/bin:$PATH"
-            elif [ -f "/usr/local/bin/pdflatex" ]; then
-              echo "Found at /usr/local/bin/pdflatex"
-              export PATH="/usr/local/bin:$PATH"
-            elif [ -d "/opt/texlive" ]; then
-              echo "Found TeX Live installation at /opt/texlive"
-              export PATH="/opt/texlive/*/bin/*:$PATH"
+            # Install TeX Live on Linux
+            if [ -f "/etc/debian_version" ]; then
+              echo "Detected Debian/Ubuntu, installing TeX Live..."
+              sudo apt-get update -qq
+              sudo apt-get install -y -qq texlive-latex-base texlive-latex-extra texlive-fonts-recommended texlive-fonts-extra texlive-bibtex-extra
+            elif [ -f "/etc/fedora-release" ]; then
+              echo "Detected Fedora/RHEL, installing TeX Live..."
+              sudo dnf install -y texlive-scheme-full
+            elif [ -f "/etc/arch-release" ]; then
+              echo "Detected Arch, installing TeX Live..."
+              sudo pacman -Sy --noconfirm texlive-core texlive-latex
+            elif [ "$(uname)" == "Darwin" ]; then
+              echo "Detected macOS, installing MacTeX..."
+              brew install --cask mactex
+            else
+              echo "Unsupported OS for automatic installation"
+              echo "Please install TeX Live manually: https://tug.org/texlive/"
+              exit 1
+            fi
+            
+            echo ""
+            echo "Verifying installation..."
+            if command -v pdflatex &> /dev/null; then
+              echo "✓ pdflatex installed successfully"
+              pdflatex --version | head -2
+            else
+              echo "✗ Installation failed"
+              exit 1
             fi
           fi
           
