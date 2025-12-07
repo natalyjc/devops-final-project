@@ -23,138 +23,143 @@ jobs:
 
       - name: Generate version information
         id: version-info
+        shell: bash
         run: |
           # Generate version based on commit count
-          $COMMIT_COUNT = (git rev-list --count HEAD)
-          $VERSION = "1.0.$COMMIT_COUNT"
+          COMMIT_COUNT=$(git rev-list --count HEAD)
+          VERSION="1.0.${COMMIT_COUNT}"
           
           # Get current commit information
-          $COMMIT_SHA = git rev-parse --short HEAD
-          $COMMIT_FULL_SHA = git rev-parse HEAD
-          $COMMIT_MESSAGE = git log -1 --pretty=%B
-          $COMMIT_AUTHOR = git log -1 --pretty=%an
-          $COMMIT_DATE = git log -1 --pretty=%ai
+          COMMIT_SHA=$(git rev-parse --short HEAD)
+          COMMIT_FULL_SHA=$(git rev-parse HEAD)
+          COMMIT_MESSAGE=$(git log -1 --pretty=%B)
+          COMMIT_AUTHOR=$(git log -1 --pretty=%an)
+          COMMIT_DATE=$(git log -1 --pretty=%ai)
           
           # Create version file for LaTeX
-          "v$VERSION (Commit: $COMMIT_SHA)" | Out-File -FilePath "Book_SSW590_1/version.txt" -Encoding UTF8
+          echo "v${VERSION} (Commit: ${COMMIT_SHA})" > Book_SSW590_1/version.txt
           
           # Create build timestamp file
-          Get-Date -Format "yyyy-MM-dd HH:mm:ss" | Out-File -FilePath "Book_SSW590_1/build-timestamp.txt" -Encoding UTF8
+          date "+%Y-%m-%d %H:%M:%S" > Book_SSW590_1/build-timestamp.txt
           
           # Create commit info file
-          @"
-          Commit SHA: $COMMIT_FULL_SHA
-          Short SHA: $COMMIT_SHA
-          Author: $COMMIT_AUTHOR
-          Date: $COMMIT_DATE
-          Message: $COMMIT_MESSAGE
-          "@ | Out-File -FilePath "Book_SSW590_1/commit-info.txt" -Encoding UTF8
+          cat > Book_SSW590_1/commit-info.txt << EOF
+          Commit SHA: ${COMMIT_FULL_SHA}
+          Short SHA: ${COMMIT_SHA}
+          Author: ${COMMIT_AUTHOR}
+          Date: ${COMMIT_DATE}
+          Message: ${COMMIT_MESSAGE}
+          EOF
           
-          echo "VERSION=$VERSION" >> $env:GITHUB_OUTPUT
-          echo "COMMIT_SHA=$COMMIT_SHA" >> $env:GITHUB_OUTPUT
-          echo "COMMIT_FULL_SHA=$COMMIT_FULL_SHA" >> $env:GITHUB_OUTPUT
+          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+          echo "COMMIT_SHA=${COMMIT_SHA}" >> $GITHUB_OUTPUT
+          echo "COMMIT_FULL_SHA=${COMMIT_FULL_SHA}" >> $GITHUB_OUTPUT
 
       - name: Capture Build Metrics - Start
         id: metrics-start
+        shell: bash
         run: |
-          $metrics = @{
-            timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-            cpu_info = (Get-WmiObject win32_processor).NumberOfCores
-            total_memory = [math]::Round((Get-WmiObject -Class Win32_ComputerSystem).TotalPhysicalMemory / 1GB, 2)
+          # Capture basic system metrics
+          cat > Book_SSW590_1/build-metrics-start.json << EOF
+          {
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "cpu_cores": $(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo "unknown"),
+            "total_memory_gb": $(free -g 2>/dev/null | awk 'NR==2 {print $2}' || echo "unknown")
           }
-          
-          $metrics | ConvertTo-Json | Out-File -FilePath "Book_SSW590_1/build-metrics-start.json" -Encoding UTF8
+          EOF
 
       - name: Setup LaTeX environment
+        shell: bash
         run: |
           # Check if LaTeX is available
-          if (Get-Command pdflatex -ErrorAction SilentlyContinue) {
-            Write-Host "✓ pdflatex found"
-            pdflatex --version | Select-Object -First 1
-          } else {
-            Write-Host "⚠ LaTeX not found in PATH"
-          }
+          if command -v pdflatex &> /dev/null; then
+            echo "✓ pdflatex found"
+            pdflatex --version | head -1
+          else
+            echo "⚠ LaTeX not found in PATH"
+          fi
 
       - name: Compile LaTeX document
         id: latex-compile
+        shell: bash
         run: |
-          Set-Location "Book_SSW590_1"
+          cd Book_SSW590_1
           
-          Write-Host "=== Starting LaTeX Compilation ==="
-          Write-Host "Document: itManual.tex"
-          Write-Host "Compile Time: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
-          Write-Host ""
+          echo "=== Starting LaTeX Compilation ==="
+          echo "Document: itManual.tex"
+          echo "Compile Time: $(date '+%Y-%m-%d %H:%M:%S')"
+          echo ""
           
           # Try to compile with pdflatex
-          if (Get-Command pdflatex -ErrorAction SilentlyContinue) {
-            Write-Host "Running: pdflatex -interaction=nonstopmode -shell-escape itManual.tex"
-            & pdflatex -interaction=nonstopmode -shell-escape itManual.tex 2>&1 | Tee-Object -FilePath "build.log"
+          if command -v pdflatex &> /dev/null; then
+            echo "Running: pdflatex -interaction=nonstopmode -shell-escape itManual.tex"
+            pdflatex -interaction=nonstopmode -shell-escape itManual.tex 2>&1 | tee build.log
             
-            $exitCode = $LASTEXITCODE
-            if ($exitCode -eq 0) {
-              Write-Host "✓ LaTeX compilation successful"
-              echo "status=success" >> $env:GITHUB_OUTPUT
+            exitCode=${PIPESTATUS[0]}
+            if [ $exitCode -eq 0 ]; then
+              echo "✓ LaTeX compilation successful"
+              echo "status=success" >> $GITHUB_OUTPUT
               
               # Run bibtex if needed
-              if (Get-Command bibtex -ErrorAction SilentlyContinue) {
-                Write-Host "Running bibtex for bibliography..."
-                & bibtex itManual 2>&1 | Tee-Object -Append -FilePath "build.log"
-              }
+              if command -v bibtex &> /dev/null; then
+                echo "Running bibtex for bibliography..."
+                bibtex itManual 2>&1 | tee -a build.log
+              fi
               
               # Run makeindex for glossary
-              if (Get-Command makeindex -ErrorAction SilentlyContinue) {
-                Write-Host "Running makeindex for index..."
-                & makeindex itManual 2>&1 | Tee-Object -Append -FilePath "build.log"
-              }
+              if command -v makeindex &> /dev/null; then
+                echo "Running makeindex for index..."
+                makeindex itManual 2>&1 | tee -a build.log
+              fi
               
               # Final compilation pass
-              Write-Host "Final LaTeX pass..."
-              & pdflatex -interaction=nonstopmode -shell-escape itManual.tex 2>&1 | Tee-Object -Append -FilePath "build.log"
-            } else {
-              Write-Host "✗ LaTeX compilation failed with exit code: $exitCode"
-              echo "status=failed" >> $env:GITHUB_OUTPUT
+              echo "Final LaTeX pass..."
+              pdflatex -interaction=nonstopmode -shell-escape itManual.tex 2>&1 | tee -a build.log
+            else
+              echo "✗ LaTeX compilation failed with exit code: $exitCode"
+              echo "status=failed" >> $GITHUB_OUTPUT
               exit 1
-            }
-          } else {
-            Write-Host "⚠ pdflatex not found, skipping compilation"
-            echo "status=skipped" >> $env:GITHUB_OUTPUT
-          }
+            fi
+          else
+            echo "⚠ pdflatex not found, skipping compilation"
+            echo "status=skipped" >> $GITHUB_OUTPUT
+          fi
 
       - name: Verify output artifacts
+        shell: bash
         run: |
-          Set-Location "Book_SSW590_1"
+          cd Book_SSW590_1
           
-          Write-Host "=== Checking LaTeX Output Artifacts ==="
-          Write-Host ""
+          echo "=== Checking LaTeX Output Artifacts ==="
+          echo ""
           
-          if (Test-Path "itManual.pdf") {
-            $fileSize = [math]::Round((Get-Item "itManual.pdf").Length / 1MB, 2)
-            Write-Host "✓ PDF generated successfully"
-            Write-Host "  File: itManual.pdf"
-            Write-Host "  Size: $fileSize MB"
-            Write-Host "  Generated: $(Get-Item 'itManual.pdf' | Select-Object -ExpandProperty LastWriteTime)"
-          } else {
-            Write-Host "✗ PDF not found"
-          }
+          if [ -f "itManual.pdf" ]; then
+            fileSize=$(du -h itManual.pdf | cut -f1)
+            echo "✓ PDF generated successfully"
+            echo "  File: itManual.pdf"
+            echo "  Size: $fileSize"
+            echo "  Generated: $(ls -l itManual.pdf | awk '{print $6, $7, $8}')"
+          else
+            echo "✗ PDF not found"
+          fi
           
-          Write-Host ""
-          Write-Host "Auxiliary files created:"
-          Get-ChildItem -Filter "*.aux" -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "  - $($_.Name)" }
-          Get-ChildItem -Filter "*.log" -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "  - $($_.Name)" }
-          Get-ChildItem -Filter "*.out" -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "  - $($_.Name)" }
+          echo ""
+          echo "Auxiliary files created:"
+          ls -1 *.aux *.log *.out 2>/dev/null | sed 's/^/  - /'
 
       - name: Generate DevOps Metrics Report
+        shell: bash
         run: |
-          Set-Location "Book_SSW590_1"
+          cd Book_SSW590_1
           
-          $report = @"
+          cat > BUILD_REPORT.md << 'EOF'
           # DevOps Build Report
           
           ## Build Information
           - **Version**: v${{ steps.version-info.outputs.VERSION }}
           - **Commit SHA**: ${{ steps.version-info.outputs.COMMIT_SHA }}
           - **Full SHA**: ${{ steps.version-info.outputs.COMMIT_FULL_SHA }}
-          - **Timestamp**: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
+          - **Timestamp**: $(date '+%Y-%m-%d %H:%M:%S')
           
           ## Workflow Execution
           - **Run ID**: ${{ github.run_id }}
@@ -177,27 +182,27 @@ jobs:
           - build-timestamp.txt
           - commit-info.txt
           - build-metrics-start.json
-          "@
+          EOF
           
-          $report | Out-File -FilePath "BUILD_REPORT.md" -Encoding UTF8
-          Write-Host $report
+          cat BUILD_REPORT.md
 
       - name: Commit generated files
+        shell: bash
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
           
           # Stage the generated files
-          git add Book_SSW590_1/version.txt Book_SSW590_1/build-timestamp.txt Book_SSW590_1/commit-info.txt -f 2>$null
+          git add Book_SSW590_1/version.txt Book_SSW590_1/build-timestamp.txt Book_SSW590_1/commit-info.txt -f 2>/dev/null || true
           
           # Check if there are changes to commit
-          if (git status --porcelain | Select-String "Book_SSW590_1") {
-            Write-Host "Committing generated metadata files..."
-            git commit -m "docs: update LaTeX metadata and build information [skip ci]" --allow-empty 2>$null
-            git push origin main 2>$null || Write-Host "⚠ Push failed or not needed"
-          } else {
-            Write-Host "No changes to commit"
-          }
+          if git status --porcelain | grep -q "Book_SSW590_1"; then
+            echo "Committing generated metadata files..."
+            git commit -m "docs: update LaTeX metadata and build information [skip ci]" --allow-empty 2>/dev/null || true
+            git push origin main 2>/dev/null || echo "⚠ Push failed or not needed"
+          else
+            echo "No changes to commit"
+          fi
 
       - name: Upload PDF artifact
         uses: actions/upload-artifact@v4
@@ -238,25 +243,26 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Display Summary
+        shell: bash
         run: |
-          Write-Host "════════════════════════════════════════════════════════"
-          Write-Host "  LaTeX Build & Documentation Workflow Completed"
-          Write-Host "════════════════════════════════════════════════════════"
-          Write-Host ""
-          Write-Host "Build Summary:"
-          Write-Host "  Version:      v${{ steps.version-info.outputs.VERSION }}"
-          Write-Host "  Commit:       ${{ steps.version-info.outputs.COMMIT_SHA }}"
-          Write-Host "  Status:       ${{ steps.latex-compile.outputs.status }}"
-          Write-Host "  Timestamp:    $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
-          Write-Host ""
-          Write-Host "Generated Files:"
-          Write-Host "  ✓ Book_SSW590_1/version.txt"
-          Write-Host "  ✓ Book_SSW590_1/build-timestamp.txt"
-          Write-Host "  ✓ Book_SSW590_1/commit-info.txt"
-          Write-Host ""
-          Write-Host "Next Steps:"
-          Write-Host "  1. Check GitHub Artifacts for compiled PDF"
-          Write-Host "  2. Review commit information in itProjectDemo chapter"
-          Write-Host "  3. Visit GitHub Releases for documentation releases"
-          Write-Host ""
-          Write-Host "════════════════════════════════════════════════════════"
+          echo "════════════════════════════════════════════════════════"
+          echo "  LaTeX Build & Documentation Workflow Completed"
+          echo "════════════════════════════════════════════════════════"
+          echo ""
+          echo "Build Summary:"
+          echo "  Version:      v${{ steps.version-info.outputs.VERSION }}"
+          echo "  Commit:       ${{ steps.version-info.outputs.COMMIT_SHA }}"
+          echo "  Status:       ${{ steps.latex-compile.outputs.status }}"
+          echo "  Timestamp:    $(date '+%Y-%m-%d %H:%M:%S')"
+          echo ""
+          echo "Generated Files:"
+          echo "  ✓ Book_SSW590_1/version.txt"
+          echo "  ✓ Book_SSW590_1/build-timestamp.txt"
+          echo "  ✓ Book_SSW590_1/commit-info.txt"
+          echo ""
+          echo "Next Steps:"
+          echo "  1. Check GitHub Artifacts for compiled PDF"
+          echo "  2. Review commit information in itProjectDemo chapter"
+          echo "  3. Visit GitHub Releases for documentation releases"
+          echo ""
+          echo "════════════════════════════════════════════════════════"
