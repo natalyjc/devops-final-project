@@ -20,60 +20,19 @@ Successfully implemented GitHub issue tracking integration with:
 ### 2. Source Code Enhancement ✓
 Meaningful improvements to the codebase:
 
-**Changes Made to `sketch.js`:**
-- Added detailed comments explaining audio analysis
-- Extracted configuration variables to module level for customization:
-  - `totalBands` - Number of particles in circular pattern
-  - `trailAlpha` - Motion blur effect intensity
-  - `particleScaling` - Particle size multiplier
-- Added `windowResized()` function for responsive design
-- Improved code structure and documentation
-- Enhanced clarity of frequency analysis (bass, mid, treble)
-
 **Documentation Added:**
 - `README.md` - Complete project documentation with features, usage, and browser requirements
 - `ISSUE_TRACKING.md` - Issue tracking workflow guide
 
-### 3. Version Control & Git Commits ✓
-Three meaningful commits with clear messages:
-
-1. **Initial commit (91a8005)**
-   ```
-   Initial commit: Audio Reactive Heart visualization with p5.js
-   ```
-
-2. **Enhancement commit (4012f02)**
-   ```
-   Enhancement: Add comprehensive documentation and improve code maintainability
-   
-   - Add detailed README.md with feature descriptions
-   - Improve sketch.js with better comments
-   - Extract configuration variables for easier customization
-   - Add windowResized() function for responsive design
-   - Enhance code organization and clarity
-   ```
-
-3. **Setup commit (6d576ba)**
-   ```
-   Setup: Add GitHub issue tracking integration
-   
-   - Create GitHub issue templates
-   - Add issue tracking guide
-   - Document workflow for collaboration
-   ```
-
-## Project Structure After Changes
+## Project Structure
 
 ```
 project/
 ├── README.md                          [NEW - Documentation]
 ├── ISSUE_TRACKING.md                 [NEW - Issue tracking guide]
-├── sketch.js                         [ENHANCED - Better documentation]
 ├── index.html                        [Original - No changes needed]
 ├── style.css                         [Original - Works as-is]
 ├── demo.js                           [Original - Works as-is]
-├── p5.js                            [Original - Dependency]
-├── p5.sound.min.js                  [Original - Dependency]
 └── .github/ISSUE_TEMPLATE/          [NEW - Issue infrastructure]
     ├── bug_report.md
     ├── feature_request.md
@@ -85,7 +44,7 @@ project/
 ### Running the Application
 ```bash
 # Navigate to project directory
-cd "c:\Users\natnj\OneDrive\Desktop\Stevens\SSW 590\project"
+cd "c:\Users\natnj\devops-final-project"
 
 # Start local server
 npx http-server
@@ -115,7 +74,6 @@ npx http-server
 
 ✨ **Git History** - Clear commit messages explain changes and rationale
 
-✨ **Responsive Design Support** - Added `windowResized()` for better mobile experience
 
 ## Next Steps
 

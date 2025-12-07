@@ -1,9 +1,7 @@
-
 name: CI/CD Pipeline
 
 on:
   push:
-  # comment test
     branches: [ main ]
   workflow_dispatch:
 
@@ -19,15 +17,31 @@ env:
 jobs:
   build:
     name: Build & Package
-    runs-on: ubuntu-latest
+    runs-on: self-hosted  # Changed from ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
       artifact-name: ${{ steps.package.outputs.artifact-name }}
     steps:
+      - name: System Load - Before Build
+        run: |
+          echo "=== SYSTEM METRICS - START ==="
+          echo "CPU Usage:"
+          top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print "CPU Load: " 100 - $1 "%"}'
+          echo ""
+          echo "Memory Usage:"
+          free -h | awk 'NR==2{print "Used: " $3 " / Total: " $2}'
+          echo ""
+          echo "Disk Usage:"
+          df -h / | awk 'NR==2{print "Used: " $3 " / Total: " $2 " (" $5 ")"}'
+          echo ""
+          echo "Load Average:"
+          uptime
+          echo ""
+
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # full history for commit count
+          fetch-depth: 0
 
       - name: Show project structure
         run: |
@@ -35,7 +49,7 @@ jobs:
           ls -la
           echo ""
           echo "=== Asset Files ==="
-          find . -type f \( -name "*.html" -o -name "*.css" -o -name "*.js" -o -name "*.json" \) | head -20
+          find . -type f \( -name "*.html" -o -name "*.css" -o -name "*.js" \) | head -20
 
       - name: Generate semantic version
         id: version
@@ -58,21 +72,32 @@ jobs:
             index.html \
             style.css \
             demo.js \
-            p5.js \
-            p5.sound.min.js \
             README.md \
             -x "node_modules/*"
           
           ls -lh "${PACKAGE_NAME}.zip"
           echo "artifact-name=${PACKAGE_NAME}.zip" >> $GITHUB_OUTPUT
 
+      - name: System Load - During Build
+        run: |
+          echo "=== SYSTEM METRICS - MID BUILD ==="
+          echo "Memory Usage:"
+          free -h | awk 'NR==2{print "Used: " $3 " / Total: " $2}'
+          ps aux --sort=-%mem | head -6
+
   test:
     name: Automated Tests
-    runs-on: ubuntu-latest
+    runs-on: self-hosted  # Changed from ubuntu-latest
     needs: build
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: System Load - Test Start
+        run: |
+          echo "=== SYSTEM METRICS - TEST START ==="
+          iostat -x 1 2 || echo "iostat not available"
+          vmstat 1 2
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -90,7 +115,6 @@ jobs:
           if command -v htmlhint &> /dev/null; then
             htmlhint index.html || echo "Note: HTML hints found (non-blocking)"
           fi
-          # Check for basic HTML structure
           if grep -q "<!DOCTYPE" index.html && grep -q "<html" index.html; then
             echo "✓ HTML structure valid"
           else
@@ -122,13 +146,10 @@ jobs:
       - name: Smoke test - serve and validate
         run: |
           npm install -g http-server
-          
-          # Start server in background
           npx http-server -p 8080 &>/dev/null &
           SERVER_PID=$!
           sleep 2
           
-          # Wait for server
           for i in {1..10}; do
             if curl -fsS http://localhost:8080 >/dev/null 2>&1; then
               echo "✓ Server is responding"
@@ -137,7 +158,6 @@ jobs:
             sleep 1
           done
           
-          # Validate response
           content=$(curl -fsS http://localhost:8080/ || echo "")
           if echo "$content" | grep -qi "html\|DOCTYPE"; then
             echo "✓ HTML content served correctly"
@@ -150,13 +170,29 @@ jobs:
           kill $SERVER_PID || true
           echo "✓ All smoke tests passed"
 
+      - name: System Load - Test End
+        run: |
+          echo "=== SYSTEM METRICS - TEST END ==="
+          echo "CPU Info:"
+          nproc --all
+          echo ""
+          echo "Memory Usage:"
+          free -h | awk 'NR==2{print "Used: " $3 " / Total: " $2}'
+
   package-and-release:
     name: Create Release Artifact
-    runs-on: ubuntu-latest
+    runs-on: self-hosted  # Changed from ubuntu-latest
     needs: [ build, test ]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: System Load - Final
+        run: |
+          echo "=== SYSTEM METRICS - FINAL ==="
+          uptime
+          free -h
+          df -h /
 
       - name: Download artifact metadata
         run: |
@@ -173,8 +209,6 @@ jobs:
             index.html \
             style.css \
             demo.js \
-            p5.js \
-            p5.sound.min.js \
             README.md \
             .github/workflows/ci-cd.yml \
             -x "node_modules/*" ".git/*"
@@ -202,7 +236,6 @@ jobs:
             **Build Details:**
             - Version: ${{ needs.build.outputs.version }}
             - Artifact: devops-final-project-${{ needs.build.outputs.version }}.zip
-            - Build time: ${{ github.event.head_commit.timestamp }}
             
             **Tests Status:** ✅ All passed
             
@@ -211,4 +244,3 @@ jobs:
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
