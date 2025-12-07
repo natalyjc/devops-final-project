@@ -1,0 +1,13 @@
+{
+  "version": "0.1.0",
+  "commitHash": "a1b2c3d",
+  "commitMessage": "Initial setup of LaTeX workflow",
+  "author": "DevOps Team",
+  "timestamp": "2024-12-07 14:30:45 +0000",
+  "branch": "main",
+  "totalCommits": 42,
+  "buildDate": "2024-12-07T14:35:22Z",
+  "pdfPath": "Book_SSW590_1/itManual.pdf",
+  "repository": "natalyjc/devops-final-project",
+  "workflowRun": "https://github.com/natalyjc/devops-final-project/actions/runs/123456789"
+}
