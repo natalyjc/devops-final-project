@@ -22,6 +22,11 @@ jobs:
       version: ${{ steps.version.outputs.version }}
       artifact-name: ${{ steps.package.outputs.artifact-name }}
     steps:
+      - name: Show commit info
+        run: |
+          echo "Commit SHA: $GITHUB_SHA"
+          echo "Commit Message:"
+          git log -1 --pretty=%B
       - name: System Load - Before Build
         run: |
           echo "=== SYSTEM METRICS - START ==="
@@ -90,6 +95,12 @@ jobs:
     runs-on: self-hosted  # Changed from ubuntu-latest
     needs: build
     steps:
+      - name: Show commit info
+        run: |
+          echo "Commit SHA: $GITHUB_SHA"
+          echo "Commit Message:"
+          git log -1 --pretty=%B
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -184,6 +195,12 @@ jobs:
     runs-on: self-hosted  # Changed from ubuntu-latest
     needs: [ build, test ]
     steps:
+      - name: Show commit info
+        run: |
+          echo "Commit SHA: $GITHUB_SHA"
+          echo "Commit Message:"
+          git log -1 --pretty=%B
+          
       - name: Checkout repository
         uses: actions/checkout@v4
 
