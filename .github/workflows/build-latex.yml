@@ -63,14 +63,16 @@ jobs:
           \newcommand{\totalCommits}{COMMIT_COUNT_PLACEHOLDER}
           LATEX
           
-          # Replace placeholders
-          sed -i "s/VERSION_PLACEHOLDER/$VERSION/g" buildinfo.tex
-          sed -i "s/COMMIT_HASH_PLACEHOLDER/$COMMIT_HASH/g" buildinfo.tex
-          sed -i "s/COMMIT_MESSAGE_PLACEHOLDER/${COMMIT_MESSAGE//&/\\&}/g" buildinfo.tex
-          sed -i "s/AUTHOR_PLACEHOLDER/$AUTHOR/g" buildinfo.tex
-          sed -i "s/TIMESTAMP_PLACEHOLDER/$TIMESTAMP/g" buildinfo.tex
-          sed -i "s/BRANCH_PLACEHOLDER/$BRANCH/g" buildinfo.tex
-          sed -i "s/COMMIT_COUNT_PLACEHOLDER/$COMMIT_COUNT/g" buildinfo.tex
+          # Replace placeholders (using | as delimiter to handle / in messages)
+          sed -i "s|VERSION_PLACEHOLDER|$VERSION|g" buildinfo.tex
+          sed -i "s|COMMIT_HASH_PLACEHOLDER|$COMMIT_HASH|g" buildinfo.tex
+          # Escape special LaTeX characters in commit message
+          SAFE_MESSAGE=$(echo "$COMMIT_MESSAGE" | sed 's/[\/&]/\\&/g' | sed 's/$/\\/' | tr '\n' ' ')
+          sed -i "s|COMMIT_MESSAGE_PLACEHOLDER|${SAFE_MESSAGE}|g" buildinfo.tex
+          sed -i "s|AUTHOR_PLACEHOLDER|$AUTHOR|g" buildinfo.tex
+          sed -i "s|TIMESTAMP_PLACEHOLDER|$TIMESTAMP|g" buildinfo.tex
+          sed -i "s|BRANCH_PLACEHOLDER|$BRANCH|g" buildinfo.tex
+          sed -i "s|COMMIT_COUNT_PLACEHOLDER|$COMMIT_COUNT|g" buildinfo.tex
           
           echo "Version: $VERSION"
           echo "Commit: $COMMIT_HASH"
