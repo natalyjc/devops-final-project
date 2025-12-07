@@ -6,6 +6,46 @@
 
 This chapter documents the continuous deployment pipeline and metrics for this DevOps project. Each build and deployment is automatically tracked with version information, commit details, and key DevOps metrics.
 
+% Include the auto-generated build information
+\input{buildinfo}
+
+\section{Current Build Information}
+\label{sec:CurrentBuild}
+
+The following table shows the current build and commit information for this PDF:
+
+\vspace{0.5cm}
+
+\begin{longtable}{|p{3cm}|p{10cm}|}
+\hline
+\textbf{Metric} & \textbf{Value} \\
+\hline
+\endhead
+\hline
+\endfoot
+
+Version & \buildversion \\
+\hline
+Commit Hash & \texttt{\commitHash} \\
+\hline
+Commit Message & \commitMessage \\
+\hline
+Author & \authorName \\
+\hline
+Timestamp & \buildTimestamp \\
+\hline
+Branch & \branchName \\
+\hline
+Total Commits & \totalCommits \\
+\hline
+
+\caption{Current Build Information}
+\label{table:current-build-info}
+
+\end{longtable}
+
+\vspace{0.5cm}
+
 \section{Build and Deployment Information}
 \label{sec:BuildInfo}
 
