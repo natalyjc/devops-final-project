@@ -1,0 +1,13 @@
+{
+  "version": "$(cat Book_SSW590_1/version.txt)",
+  "commitHash": "$(git rev-parse --short HEAD)",
+  "commitMessage": "$(git log -1 --pretty=%B | head -1)",
+  "author": "$(git log -1 --pretty=%an)",
+  "timestamp": "$(git log -1 --pretty=%ai)",
+  "branch": "$(git rev-parse --abbrev-ref HEAD)",
+  "totalCommits": $(git rev-list --count HEAD),
+  "buildDate": "$(date -u +'%Y-%m-%dT%H:%M:%SZ')",
+  "pdfPath": "Book_SSW590_1/itManual.pdf",
+  "repository": "natalyjc/devops-final-project",
+  "workflowRun": "https://github.com/natalyjc/devops-final-project/actions/runs/20012677889"
+}
