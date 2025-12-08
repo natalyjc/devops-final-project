@@ -72,7 +72,7 @@ jobs:
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "Generated version: ${VERSION}"
 
-      - name: Create deployment package
+      - name: Building project source code 
         id: package
         run: |
           VERSION=${{ steps.version.outputs.version }}
@@ -161,6 +161,119 @@ jobs:
           echo "Commit: $COMMIT_HASH"
           echo "Author: $AUTHOR"
           echo "Branch: $BRANCH"
+      
+      - name: Generate reverse architecture documentation
+        run: |
+          echo "=== GENERATING REVERSE ARCHITECTURE DOCUMENTATION ==="
+          
+          # Create architecture directory
+          mkdir -p Book_SSW590_1/architecture
+          
+          # Install tools
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq graphviz > /dev/null 2>&1
+          
+          # Generate PlantUML architecture diagram
+          cat > Book_SSW590_1/architecture/architecture.puml << 'PLANTUML'
+          @startuml devops-architecture
+          !theme plain
+          title DevOps Final Project - Architecture Overview
+          
+          package "Frontend" {
+            [index.html] as HTML
+            [style.css] as CSS
+            [demo.js] as JS
+          }
+          
+          package "LaTeX Documentation" {
+            [itManual.tex] as LATEX
+            [itProjectDemo.tex] as DEMO
+            [Cornell Style] as STYLE
+          }
+          
+          package "CI/CD Pipeline" {
+            [ci-cd.yml] as CI_CD
+            [GitHub Actions] as ACTIONS
+          }
+          
+          package "Build Output" {
+            [itManual.pdf] as PDF
+            [version.txt] as VERSION
+            [buildinfo.json] as METADATA
+          }
+          
+          HTML --> CSS : styles
+          HTML --> JS : interaction
+          LATEX --> DEMO : includes
+          DEMO --> |references| METADATA
+          CI_CD --> ACTIONS : runs
+          ACTIONS --> PDF : generates
+          ACTIONS --> METADATA : creates
+          
+          @enduml
+          PLANTUML
+          
+          # Generate Graphviz diagram
+          cat > Book_SSW590_1/architecture/architecture.dot << 'GRAPHVIZ'
+          digraph DevOpsArchitecture {
+              rankdir=LR;
+              node [shape=box, style=rounded];
+              
+              subgraph cluster_frontend {
+                  label = "Frontend Layer";
+                  style = "rounded,filled";
+                  fillcolor = "lightblue";
+                  HTML [label="index.html\n(Web Interface)"];
+                  CSS [label="style.css\n(Styling)"];
+                  JS [label="demo.js\n(Interaction)"];
+              }
+              
+              subgraph cluster_docs {
+                  label = "Documentation Layer";
+                  style = "rounded,filled";
+                  fillcolor = "lightgreen";
+                  MAIN_TEX [label="itManual.tex\n(Main Document)"];
+                  DEMO_TEX [label="itProjectDemo.tex\n(DevOps Chapter)"];
+                  ARCH_TEX [label="itArchitecture.tex\n(Architecture)"];
+              }
+              
+              subgraph cluster_cicd {
+                  label = "CI/CD Pipeline";
+                  style = "rounded,filled";
+                  fillcolor = "lightyellow";
+                  CI_CD [label="ci-cd.yml"];
+                  ACTIONS [label="GitHub Actions"];
+              }
+              
+              subgraph cluster_output {
+                  label = "Build Output";
+                  style = "rounded,filled";
+                  fillcolor = "lightcoral";
+                  PDF [label="itManual.pdf\n(Generated)"];
+                  VERSION [label="version.txt"];
+                  METADATA [label="buildinfo.json"];
+              }
+              
+              HTML -> CSS [label="uses"];
+              HTML -> JS [label="uses"];
+              MAIN_TEX -> DEMO_TEX [label="includes"];
+              MAIN_TEX -> ARCH_TEX [label="includes"];
+              DEMO_TEX -> METADATA [label="references"];
+              CI_CD -> ACTIONS [label="orchestrates"];
+              ACTIONS -> MAIN_TEX [label="compiles"];
+              ACTIONS -> METADATA [label="generates"];
+              MAIN_TEX -> PDF [label="pdflatex"];
+              METADATA -> PDF [label="inputs"];
+              VERSION -> PDF [label="inputs"];
+          }
+          GRAPHVIZ
+          
+          # Convert Graphviz to PNG and PDF
+          dot -Tpng Book_SSW590_1/architecture/architecture.dot -o Book_SSW590_1/architecture/architecture.png 2>/dev/null || true
+          dot -Tpdf Book_SSW590_1/architecture/architecture.dot -o Book_SSW590_1/architecture/architecture.pdf 2>/dev/null || true
+          
+          echo "✓ Architecture diagrams generated"
+          ls -lh Book_SSW590_1/architecture/ 2>/dev/null | tail -n +2 || echo "Diagrams ready for compilation"
       
       - name: Install LaTeX dependencies
         run: |
