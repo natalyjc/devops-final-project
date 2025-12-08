@@ -1,0 +1,367 @@
+\chapter{Reverse Architecture Documentation \\
+\small{\textit{-- System Architecture and Component Analysis}}
+\index{Architecture}
+\index{Chapter!Architecture}
+\label{Chapter::Architecture}}
+
+This chapter presents the reverse-engineered architectural documentation of the DevOps Final Project, extracted automatically from source code and CI/CD pipeline configuration.
+
+\section{Architecture Overview}
+\label{sec:ArchOverview}
+
+The DevOps Final Project is a hybrid system consisting of four main components:
+
+\begin{enumerate}
+    \item \textbf{Frontend Web Application} - HTML, CSS, and JavaScript files
+    \item \textbf{Documentation System} - LaTeX-based technical documentation
+    \item \textbf{Build Automation} - Compilation and metadata generation
+    \item \textbf{CI/CD Pipeline} - GitHub Actions workflow orchestration
+\end{enumerate}
+
+\section{Frontend Layer}
+\label{sec:FrontendLayer}
+
+The frontend layer consists of three main files that form a web application:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{File} & \textbf{Type} & \textbf{Purpose} \\
+\hline
+index.html & HTML5 & Main web interface and document structure \\
+\hline
+style.css & CSS3 & Visual styling and responsive layout \\
+\hline
+demo.js & JavaScript & Interactive functionality and DOM manipulation \\
+\hline
+\end{tabular}
+\caption{Frontend Components}
+\label{table:frontend-components}
+\end{table}
+
+\subsubsection{Dependencies}
+
+\begin{itemize}
+    \item \texttt{index.html} depends on \texttt{style.css} for styling
+    \item \texttt{index.html} depends on \texttt{demo.js} for interaction
+    \item \texttt{demo.js} manipulates the DOM defined in \texttt{index.html}
+\end{itemize}
+
+\section{Documentation Layer}
+\label{sec:DocumentationLayer}
+
+The documentation layer is built on LaTeX and the Cornell thesis style:
+
+\subsection{Core Documents}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{File} & \textbf{Type} & \textbf{Purpose} \\
+\hline
+itManual.tex & LaTeX & Master document that includes all chapters \\
+\hline
+prologue.tex & LaTeX & Title page, abstract, acknowledgments \\
+\hline
+itProjectDemo.tex & LaTeX & DevOps metrics and build information \\
+\hline
+itArchitecture.tex & LaTeX & System architecture and component analysis \\
+\hline
+\end{tabular}
+\caption{Main Documentation Files}
+\label{table:doc-files}
+\end{table}
+
+\subsection{Supporting Files}
+
+The documentation system includes 17+ chapter files covering various aspects of the DevOps infrastructure including:
+
+\begin{itemize}
+    \item \texttt{itIntroduction.tex} - Project introduction
+    \item \texttt{itAWSDeployment.tex} - AWS infrastructure setup
+    \item \texttt{itGithub.tex} - GitHub configuration and workflows
+    \item \texttt{itJenkinsWithPytest.tex} - Jenkins CI/CD setup
+    \item \texttt{itPrometheusGrafana.tex} - Monitoring and logging systems
+    \item \texttt{itLoadBalancer.tex} - Load balancing configuration
+    \item \texttt{itKanbanSetup.tex} - Project management setup
+    \item And more...
+\end{itemize}
+
+\section{Build Automation}
+\label{sec:BuildAutomation}
+
+The build automation layer handles LaTeX compilation and metadata generation:
+
+\subsection{Version Generation}
+
+Version information is automatically extracted from the git repository:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Information} & \textbf{Source} \\
+\hline
+Version & Git tags or commit count \\
+\hline
+Commit Hash & Latest git commit SHA-1 \\
+\hline
+Author & Committer name from git \\
+\hline
+Timestamp & Commit date and time \\
+\hline
+Branch & Current git branch \\
+\hline
+Total Commits & Number of commits in repository \\
+\hline
+\end{tabular}
+\caption{Automatically Captured Build Information}
+\label{table:build-info}
+\end{table}
+
+\subsection{LaTeX Compilation}
+
+The compilation process runs three passes to ensure proper cross-references:
+
+\begin{enumerate}
+    \item \textbf{First Pass}: Generate references and build reference list
+    \item \textbf{Second Pass}: Build table of contents and index
+    \item \textbf{Third Pass}: Final compilation with all references resolved
+\end{enumerate}
+
+\section{CI/CD Pipeline Architecture}
+\label{sec:CIPipeline}
+
+The CI/CD pipeline is orchestrated by GitHub Actions with multiple jobs:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Workflow} & \textbf{Trigger} & \textbf{Purpose} \\
+\hline
+ci-cd.yml & Push to main/develop & Build, test, package, and release \\
+\hline
+\end{tabular}
+\caption{GitHub Actions Workflows}
+\label{table:workflows}
+\end{table}
+
+\subsection{Workflow Jobs}
+
+The CI/CD pipeline includes the following main jobs:
+
+\begin{enumerate}
+    \item \textbf{Build Job} - Compiles source code, generates artifacts
+    \item \textbf{Build LaTeX Job} - Runs LaTeX compilation with version info
+    \item \textbf{Test Job} - Runs automated tests (validation)
+    \item \textbf{Package and Release Job} - Creates deployment packages
+\end{enumerate}
+
+\subsection{Architecture Generation}
+
+On each build, the system automatically generates:
+
+\begin{itemize}
+    \item \textbf{PlantUML Diagrams} - Component architecture specifications
+    \item \textbf{Graphviz Diagrams} - Visual architecture representations
+    \item \textbf{Source Analysis} - Code structure documentation
+    \item \textbf{Component Maps} - System component relationships
+\end{itemize}
+
+\section{Data Flow}
+\label{sec:DataFlow}
+
+The data flows through the system as follows:
+
+\begin{enumerate}
+    \item Developer commits code and pushes to GitHub
+    \item GitHub detects push and triggers workflows
+    \item Build system extracts metadata from git
+    \item LaTeX compiler generates diagrams and documentation
+    \item PDF is created with all build information
+    \item Artifacts are uploaded and released on GitHub
+\end{enumerate}
+
+\section{Build Output Artifacts}
+\label{sec:OutputArtifacts}
+
+The build system generates and stores the following artifacts:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Artifact} & \textbf{Format} & \textbf{Storage} \\
+\hline
+itManual.pdf & PDF & GitHub Artifacts (30 days) \\
+\hline
+version.txt & Text & Auto-committed to repo \\
+\hline
+buildinfo.tex & LaTeX & Auto-committed to repo \\
+\hline
+buildinfo.json & JSON & GitHub Artifacts \\
+\hline
+architecture.png & PNG & Generated during build \\
+\hline
+architecture.pdf & PDF & Generated during build \\
+\hline
+devops-final-project-[ver].zip & ZIP & GitHub Releases \\
+\hline
+\end{tabular}
+\caption{Build Output Artifacts}
+\label{table:output-artifacts}
+\end{table}
+
+\section{Architecture Patterns}
+\label{sec:ArchPatterns}
+
+\subsection{Separation of Concerns}
+
+The architecture maintains clear separation between:
+
+\begin{itemize}
+    \item \textbf{Frontend} - Web interface and user interaction
+    \item \textbf{Documentation} - Technical and process documentation
+    \item \textbf{Automation} - Build and compilation scripts
+    \item \textbf{CI/CD} - Orchestration and release management
+\end{itemize}
+
+\subsection{Automation and Reproducibility}
+
+\begin{itemize}
+    \item All builds are automated via GitHub Actions
+    \item Version information is automatically extracted from git
+    \item Documentation is regenerated on every commit
+    \item Artifacts are automatically stored and released
+    \item Diagrams are generated from source code analysis
+\end{itemize}
+
+\subsection{Metadata Injection}
+
+Build information is dynamically injected into:
+
+\begin{itemize}
+    \item PDF footer (version number on every page)
+    \item Project Demo chapter (full build details)
+    \item JSON metadata files (programmatic access)
+    \item LaTeX commands (document integration)
+    \item Architecture diagrams (system visualization)
+\end{itemize}
+
+\section{Technology Stack}
+\label{sec:TechStack}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Component} & \textbf{Technologies} & \textbf{Purpose} \\
+\hline
+Frontend & HTML5, CSS3, JavaScript & Web interface and interaction \\
+\hline
+Documentation & LaTeX, Cornell.cls, BibTeX & Technical documentation \\
+\hline
+Build Tools & pdflatex, sed, bash & Compilation and scripting \\
+\hline
+Diagrams & Graphviz, PlantUML & Architecture visualization \\
+\hline
+CI/CD & GitHub Actions, YAML & Workflow orchestration \\
+\hline
+Version Control & Git, GitHub & Source and documentation control \\
+\hline
+Packaging & ZIP, tar & Artifact distribution \\
+\hline
+\end{tabular}
+\caption{Technology Stack}
+\label{table:tech-stack}
+\end{table}
+
+\section{Deployment Architecture}
+\label{sec:DeploymentArch}
+
+The system uses a multi-stage deployment approach:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Environment} & \textbf{Description} \\
+\hline
+Development & Local development on developer machine \\
+\hline
+Repository & GitHub repository with version control \\
+\hline
+CI/CD Server & GitHub Actions for build and test \\
+\hline
+Artifact Storage & GitHub Actions artifact storage (30 days) \\
+\hline
+Release & GitHub Releases for versioned releases \\
+\hline
+\end{tabular}
+\caption{Deployment Architecture}
+\label{table:deployment-arch}
+\end{table}
+
+\section{System Component Relationships}
+\label{sec:ComponentRelations}
+
+The key relationships between system components:
+
+\begin{itemize}
+    \item \textbf{HTML depends on CSS and JS} - Frontend layer dependencies
+    \item \textbf{LaTeX depends on buildinfo} - Documentation includes metadata
+    \item \textbf{PDF depends on LaTeX} - Compilation produces output
+    \item \textbf{Workflows orchestrate builds} - CI/CD controls processes
+    \item \textbf{Git metadata feeds diagrams} - Source code drives documentation
+\end{itemize}
+
+\section{Automatic Documentation Synchronization}
+\label{sec:AutoSync}
+
+The system maintains documentation synchronization through:
+
+\begin{enumerate}
+    \item \textbf{Git Hooks} - Trigger builds on push events
+    \item \textbf{Automated Metadata Extraction} - Version info from git
+    \item \textbf{Dynamic Diagram Generation} - Extracted from source code
+    \item \textbf{PDF Regeneration} - On every commit
+    \item \textbf{Artifact Management} - Automatic storage and retention
+\end{enumerate}
+
+This ensures that documentation always reflects the current state of the codebase and deployment pipeline.
+
+\section{Key Features and Benefits}
+\label{sec:Features}
+
+\begin{itemize}
+    \item \textbf{Automated Documentation} - Docs generated on every commit
+    \item \textbf{Version Tracking} - Semantic versioning from git
+    \item \textbf{Build Automation} - Fully automated LaTeX compilation
+    \item \textbf{CI/CD Integration} - GitHub Actions orchestration
+    \item \textbf{Reverse Documentation} - Architecture extracted from source
+    \item \textbf{Artifact Management} - Automatic storage and release
+    \item \textbf{Metadata Injection} - Build info embedded in PDF
+    \item \textbf{Diagram Generation} - Visual architecture documentation
+\end{itemize}
+
+\section{Conclusions}
+\label{sec:ArchConclusions}
+
+The DevOps Final Project demonstrates a mature, automated approach to software documentation:
+
+\begin{itemize}
+    \item Documentation is treated as code and version-controlled
+    \item Build information is automatically captured and embedded
+    \item Architecture is visualized through automated diagram generation
+    \item All processes are reproducible and auditable
+    \item System maintains self-documenting properties
+\end{itemize}
+
+This architecture enables continuous documentation generation, ensuring that technical documentation stays synchronized with source code and build processes at all times.
+
+\noindent
+\textit{This chapter was automatically included from the system architecture documentation.}
+
