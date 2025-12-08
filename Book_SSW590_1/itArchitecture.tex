@@ -18,6 +18,19 @@ The DevOps Final Project is a hybrid system consisting of four main components:
     \item \textbf{CI/CD Pipeline} - GitHub Actions workflow orchestration
 \end{enumerate}
 
+\subsection{Visual Architecture Diagram}
+
+\begin{figure}[h]
+\centering
+\IfFileExists{architecture/architecture.png}{%
+    \includegraphics[width=\textwidth,height=6in,keepaspectratio]{architecture/architecture.png}%
+    \caption{System Architecture Diagram (Reverse-Engineered)}%
+    \label{fig:architecture-diagram}%
+}{%
+    \textit{Note: Architecture diagram will be generated on next build.}%
+}
+\end{figure}
+
 \section{Frontend Layer}
 \label{sec:FrontendLayer}
 
@@ -184,6 +197,37 @@ The data flows through the system as follows:
     \item PDF is created with all build information
     \item Artifacts are uploaded and released on GitHub
 \end{enumerate}
+
+\section{Architecture Diagrams}
+\label{sec:ArchDiagrams}
+
+The system automatically generates multiple diagram formats to visualize the architecture:
+
+\subsection{Graphviz Component Diagram}
+
+\begin{figure}[h]
+\centering
+\IfFileExists{architecture/architecture.pdf}{%
+    \includegraphics[width=\textwidth,height=5in,keepaspectratio]{architecture/architecture.pdf}%
+    \caption{Detailed Component Architecture (Graphviz)}%
+    \label{fig:graphviz-diagram}%
+}{%
+    \textit{Note: Detailed component diagram will be generated on next build.}%
+}
+\end{figure}
+
+\subsection{PlantUML Architecture Specification}
+
+The system also generates PlantUML-based architecture specifications in \texttt{architecture/architecture.puml} that describe:
+
+\begin{itemize}
+    \item Component boundaries and responsibilities
+    \item Inter-component relationships and dependencies
+    \item Data flow and communication patterns
+    \item Technology stack and deployment targets
+\end{itemize}
+
+These diagrams are regenerated automatically on each push, ensuring they always reflect the current system architecture.
 
 \section{Build Output Artifacts}
 \label{sec:OutputArtifacts}
