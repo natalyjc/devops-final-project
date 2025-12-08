@@ -81,7 +81,6 @@ function draw() {
   if (showInstructions) drawInstructions();
 }
 
-// test comment
 function drawHeart(baseHue) {
   for (let g = 3; g >= 0; g--) {
     let glowScale = 10 + g * 6;
@@ -105,6 +104,7 @@ function drawHeart(baseHue) {
   }
 }
 
+// test comment 2
 function drawUserImage(baseHue) {
   let imgSize = 300 * smoothedPulse;
   let tintHue = (baseHue + 30) % 360;
