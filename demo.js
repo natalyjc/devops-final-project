@@ -38,6 +38,7 @@ function setup() {
   velY = random(3, 6);
 }
 
+// used to draw the heart
 function draw() {
   background(0, 25);
 
