@@ -39,7 +39,7 @@ function setup() {
   velY = random(3, 6);
 }
 
-// used to draw the heart
+// used to draw the heart, update bounce included
 function draw() {
   background(0, 25);
 
