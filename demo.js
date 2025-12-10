@@ -104,7 +104,6 @@ function drawHeart(baseHue) {
   }
 }
 
-// test comment 2
 function drawUserImage(baseHue) {
   let imgSize = 300 * smoothedPulse;
   let tintHue = (baseHue + 30) % 360;
