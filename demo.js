@@ -13,6 +13,7 @@ let velX, velY;
 
 let showInstructions = true; // controls both text + file input
 
+// setting up canvas size, mic options and file input
 function setup() {
   createCanvas(windowWidth, windowHeight);
   angleMode(DEGREES);
