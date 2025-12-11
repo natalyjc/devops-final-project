@@ -83,6 +83,7 @@ function draw() {
   if (showInstructions) drawInstructions();
 }
 
+// Loop through the glow layers to create depth
 function drawHeart(baseHue) {
   for (let g = 3; g >= 0; g--) {
     let glowScale = 10 + g * 6;
