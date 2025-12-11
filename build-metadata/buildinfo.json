@@ -9,5 +9,5 @@
   "buildDate": "$(date -u +'%Y-%m-%dT%H:%M:%SZ')",
   "pdfPath": "Book_SSW590_1/itManual.pdf",
   "repository": "natalyjc/devops-final-project",
-  "workflowRun": "https://github.com/natalyjc/devops-final-project/actions/runs/20115245131"
+  "workflowRun": "https://github.com/natalyjc/devops-final-project/actions/runs/20117567799"
 }
